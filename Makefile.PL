@@ -7,12 +7,13 @@ WriteMakefile(
     AUTHOR              => 'Vlatko Kosturjak <kost@linux.hr>',
     VERSION_FROM        => 'lib/Net/Nessus/XMLRPC.pm',
     ABSTRACT_FROM       => 'lib/Net/Nessus/XMLRPC.pm',
+($ExtUtils::MakeMaker::VERSION < 6.46 ? () : (
     META_MERGE          => {
 	    resources => {
 	    bugtracker  =>      'https://rt.cpan.org/Public/Bug/Report.html?Queue=Net-Nessus-XMLRPC',
 	    repository  =>      'http://github.com/kost/nessus-xmlrpc-perl'
 	    }
-    },
+    })),
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
