@@ -13,11 +13,11 @@ Net::Nessus::XMLRPC - Communicate with Nessus scanner(v4.2+) via XMLRPC
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -332,7 +332,7 @@ sub scan_get_name {
 	} # if
 }
 
-=head2 scan_get_name ( $uuid ) 
+=head2 scan_status ( $uuid ) 
 
 returns status of the scan identified by $uuid 
 =cut
@@ -355,7 +355,7 @@ sub scan_status {
 	return ''; # nothing found
 }
 
-=head2 scan_get_name ( $uuid ) 
+=head2 scan_finished ( $uuid ) 
 
 returns true if scan is finished/completed (identified by $uuid)
 =cut
