@@ -13,6 +13,24 @@ To install this module, run the following commands:
 	make test
 	make install
 
+EXAMPLE
+
+    use Net::Nessus::XMLRPC;
+
+    # '' is same as https://localhost:8834/
+    my $n = Net::Nessus::XMLRPC->new ('','user','pass');
+
+    if ($n->logged_in) {
+	    print "Logged in\n";
+	    my $polid=$n->policy_get_first;
+	    print "Using policy ID: $polid ";
+	    my $polname=$n->policy_get_name($polid);
+	    print "with name: $polname\n";
+	    $scanid=$n->scan_new($polid,"perl-test","127.0.0.1");
+    } else {
+	    print "URL, user or password not correct: ".$n->nurl."\n";
+    }
+
 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
