@@ -7,6 +7,8 @@ WriteMakefile(
     AUTHOR              => 'Vlatko Kosturjak <kost@linux.hr>',
     VERSION_FROM        => 'lib/Net/Nessus/XMLRPC.pm',
     ABSTRACT_FROM       => 'lib/Net/Nessus/XMLRPC.pm',
+($ExtUtils::MakeMaker::VERSION >= 6.3002 ?
+	('LICENSE'		=> 'perl', ) : ()),
 ($ExtUtils::MakeMaker::VERSION < 6.46 ? () : (
     META_MERGE          => {
 	    resources => {
