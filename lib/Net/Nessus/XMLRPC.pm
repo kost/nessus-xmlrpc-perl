@@ -26,38 +26,30 @@ This is Perl interface for communication with Nessus scanner over XMLRPC.
 You can start, stop, pause and resume scan. Watch progress and status of 
 scan, download report, etc.
 
-    use Net::Nessus::XMLRPC;
+	use Net::Nessus::XMLRPC;
 
-    use strict;
+	# '' is same as https://localhost:8834/
+	my $n = Net::Nessus::XMLRPC->new ('','user','pass');
 
-    # '' is same as https://localhost:8834/
-    my $n = Net::Nessus::XMLRPC->new ('','user','pass');
-    my $scanid;
+	die "Cannot login to: ".$n->nurl."\n" unless ($n->logged_in);
 
-    $SIG{INT} = \&ctrlc;
+	print "Logged in\n";
+	my $polid=$n->policy_get_first;
+	print "Using policy ID: $polid ";
+	my $polname=$n->policy_get_name($polid);
+	print "with name: $polname\n";
+	my $scanid=$n->scan_new($polid,"perl-test","127.0.0.1");
 
-    if ($n->logged_in) {
-	    print "Logged in\n";
-	    my $polid=$n->policy_get_first;
-	    print "Using policy ID: $polid ";
-	    my $polname=$n->policy_get_name($polid);
-	    print "with name: $polname\n";
-	    $scanid=$n->scan_new($polid,"perl-test","127.0.0.1");
-	    while (not $n->scan_finished($scanid)) {
-		    print "Status of $scanid: ".$n->scan_status($scanid)."\n";
-		    sleep 10;
-	    }
-	    print "Status of $scanid: ".$n->scan_status($scanid)."\n";
-	    
-    } else {
-	    print "URL, user or password not correct: ".$n->nurl."\n";
-    }
-
-    sub ctrlc {
-	    $SIG{INT} = \&ctrlc;
-	    print "\nCTRL+C presssed, stopping scan.\n";
-	    $n->scan_stop($scanid);
-    }
+	while (not $n->scan_finished($scanid)) {
+		print "$scanid: ".$n->scan_status($scanid)."\n";	
+		sleep 15;
+	}
+	print "$scanid: ".$n->scan_status($scanid)."\n";	
+	my $reportcont=$n->report_file_download($scanid);
+	my $reportfile="report.xml";
+	open (FILE,">$reportfile") or die "Cannot open file $reportfile: $!";
+	print FILE $reportcont;
+	close (FILE);
 
 =head1 METHODS
 
