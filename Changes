@@ -1,5 +1,9 @@
 Revision history for Net-Nessus-XMLRPC
 
+0.04    2010-03-19 23:27
+	Better default examples, added more examples, 
+	Added license and prerequisites to meta information. 
+
 0.03    2010-03-16 08:31
 	Fixes to documentation, added git repository
 
