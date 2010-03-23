@@ -54,7 +54,7 @@ scan, download report, etc.
 =head1 NOTICE
 
 This CPAN module uses LWP for communicating with Nessus over XMLRPC via https.
-Therefore, make sure that you have Net::SSL (provided by Crypt::SSL)
+Therefore, make sure that you have Net::SSL (provided by Crypt::SSLeay)
 http://search.cpan.org/perldoc?Crypt::SSLeay
 or IO::Socket::SSL:
 http://search.cpan.org/perldoc?IO::Socket::SSL
