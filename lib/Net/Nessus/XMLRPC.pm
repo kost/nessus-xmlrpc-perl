@@ -53,7 +53,7 @@ scan, download report, etc.
 
 =head1 NOTICE
 
-This CPAN module uses LWP for communicating with Nessus over XMLRPC.
+This CPAN module uses LWP for communicating with Nessus over XMLRPC via https.
 Therefore, make sure that you have Net::SSL (provided by Crypt::SSL)
 http://search.cpan.org/perldoc?Crypt::SSLeay
 or IO::Socket::SSL:
