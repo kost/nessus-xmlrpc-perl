@@ -1,5 +1,8 @@
 Revision history for Net-Nessus-XMLRPC
 
+0.05dev	2010-03-23 21:09
+	Added notice for SSL requirements for LWP
+
 0.04    2010-03-19 23:27
 	Better default examples, added more examples, 
 	Added license and prerequisites to meta information. 

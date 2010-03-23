@@ -51,6 +51,16 @@ scan, download report, etc.
 	print FILE $reportcont;
 	close (FILE);
 
+=head1 NOTICE
+
+This CPAN module uses LWP for communicating with Nessus over XMLRPC.
+Therefore, make sure that you have Net::SSL (provided by Crypt::SSL)
+http://search.cpan.org/perldoc?Crypt::SSLeay
+or IO::Socket::SSL:
+http://search.cpan.org/perldoc?IO::Socket::SSL
+
+If you think you have login problems, check this first!
+
 =head1 METHODS
 
 =head2 new ([$nessus_url], [$user], [$pass])
