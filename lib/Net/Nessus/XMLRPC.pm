@@ -168,6 +168,16 @@ sub login {
 	return $self->token;
 }
 
+=head2 logout 
+
+logout from Nessus server
+=cut
+sub logout {
+	my ($self) = @_;
+	my $xmls = $self->nessus_request("logout",$post);
+	$self->token('');
+}
+
 =head2 logged_in
 
 returns true if we're logged in
