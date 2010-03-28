@@ -174,8 +174,18 @@ logout from Nessus server
 =cut
 sub logout {
 	my ($self) = @_;
+	my $post=[ "token" => $self->token ];
 	my $xmls = $self->nessus_request("logout",$post);
 	$self->token('');
+}
+
+=head2 DESTROY 
+
+destructor, calls logout method on destruction
+=cut
+sub DESTROY {
+	my ($self) = @_;
+	$self->logout();
 }
 
 =head2 logged_in
