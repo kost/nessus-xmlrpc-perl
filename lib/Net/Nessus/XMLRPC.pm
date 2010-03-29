@@ -221,6 +221,29 @@ sub scan_new {
 	}
 }	
 
+=head2 scan_new_file ( $policy_id, $scan_name, $targets, $filename )
+
+initiates new scan with hosts from file named $filename
+=cut
+sub scan_new_file {
+	my ( $self, $policy_id, $scan_name, $target, $filename ) = @_;
+
+	my $post={ 
+		"token" => $self->token, 
+		"policy_id" => $policy_id,
+		"scan_name" => $scan_name,
+		"target" => $target
+		 };
+	my 
+	$post->{"target_file_name"} = $self->file_upload($filename);
+	my $xmls = $self->nessus_request("scan/new",$post);
+	if ($xmls) {
+		return ($xmls->{'contents'}->[0]->{'scan'}->[0]->{'uuid'}->[0]);
+	} else {
+		return $xmls
+	}
+}	
+
 =head2 scan_stop ( $scan_id )
 
 stops the scan identified by $scan_id
