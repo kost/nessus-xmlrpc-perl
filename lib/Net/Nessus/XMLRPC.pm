@@ -690,7 +690,7 @@ sub policy_get_opts {
 	 return '';
 }
 
-=head2 policy_get_opts ( $policy_id , %params ) 
+=head2 policy_set_opts ( $policy_id , %params ) 
 
 sets policy options via hash identified by $policy_id 
 =cut
