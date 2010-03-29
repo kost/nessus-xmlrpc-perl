@@ -545,6 +545,58 @@ sub policy_get_name {
 	 return '';
 }
 
+=head2 policy_delete ( $policy_id )
+
+delete policy identified by $policy_id
+=cut
+sub policy_delete {
+	my ( $self, $policy_id ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		"policy_id" => $policy_id,
+		 ];
+
+	my $xmls = $self->nessus_request("policy/delete",$post);
+	return $xmls;
+}
+
+=head2 policy_copy ( $policy_id )
+
+copy policy identified by $policy_id, returns $policy_id of new copied policy
+=cut
+sub policy_copy {
+	my ( $self, $policy_id ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		"policy_id" => $policy_id,
+		 ];
+
+	my $xmls = $self->nessus_request("policy/copy",$post);
+	if ($xmls->{'contents'}->[0]->{'policy'}->[0]) {
+		return $xmls->{'contents'}->[0]->{'policy'}->[0]->{'policyID'}->[0];
+	} # if
+	return '';
+}
+
+=head2 policy_rename ( $policy_id, $policy_name )
+
+rename policy to $policy_name identified by $policy_id
+=cut
+sub policy_rename {
+	my ( $self, $policy_id, $policy_name ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		"policy_id" => $policy_id,
+		"policy_name" => $policy_name
+		 ];
+
+	my $xmls = $self->nessus_request("policy/rename",$post);
+	return $xmls;
+}
+
 =head2 report_list_uids 
 
 returns array of IDs of reports available
