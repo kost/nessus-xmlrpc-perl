@@ -526,9 +526,39 @@ sub policy_list_names {
 	return '';
 }
 
+=head2 policy_get_info ( $policy_id ) 
+
+returns hash %value with basic info of policy/scan identified by $policy_id 
+
+$value{'id'}, $value{'name'}, $value{'owner'}, $value{'visibility'},
+$value{'comment'}
+=cut
+sub policy_get_info {
+	my ( $self, $policy_id ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		 ];
+	my %info;
+	my $xmls = $self->nessus_request("policy/list",$post);
+	if ($xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}) {
+	foreach my $report (@{$xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}}) {
+	if ($report->{'policyID'}->[0] eq $policy_id) {
+		$info{'id'} = $report->{'policyID'}->[0];
+		$info{'name'} = $report->{'policyName'}->[0];
+		$info{'owner'} = $report->{'policyOwner'}->[0];
+		$info{'visibility'} = $report->{'visibility'}->[0];
+		$info{'comment'} = $report->{'policyContents'}->[0]->{'policyComments'}->[0];
+		return %info;
+	}
+	} # foreach
+	} # if
+	return %info;
+}
+
 =head2 policy_get_id ( $policy_name ) 
 
-returns ID of the policy identified by $policy_name 
+returns ID of the scan/policy identified by $policy_name 
 =cut
 sub policy_get_id {
 	my ( $self, $policy_name ) = @_;
@@ -549,7 +579,7 @@ sub policy_get_id {
 
 =head2 policy_get_name ( $policy_id ) 
 
-returns name of the scan identified by $policy_id 
+returns name of the scan/policy identified by $policy_id 
 =cut
 sub policy_get_name {
 	my ( $self, $policy_id ) = @_;
