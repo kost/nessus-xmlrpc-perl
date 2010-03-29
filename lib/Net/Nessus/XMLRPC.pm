@@ -680,7 +680,7 @@ sub policy_rename {
 	return $xmls;
 }
 
-=head2 policy_edit ( $policy_id, %params )
+=head2 policy_edit ( $policy_id, $params )
 
 edit policy identified by $policy_id
 %params (must be present): 
@@ -698,13 +698,13 @@ save_knowledge_base => no,
 port_range => 1-65535
 =cut
 sub policy_edit {
-	my ( $self, $policy_id, %params ) = @_;
+	my ( $self, $policy_id, $params ) = @_;
 
 	my $post={ 
 		"token" => $self->token, 
 		"policy_id" => $policy_id
 		 };
-	while (my ($key, $value) = each(%params))
+	while (my ($key, $value) = each(%{$params}))
 	{
 		$post->{$key} = $value;
 	}
@@ -713,17 +713,17 @@ sub policy_edit {
 	return $xmls;
 }
 
-=head2 policy_new ( $policy_name, $policy_shared, %params )
+=head2 policy_new ( $policy_name, $policy_shared, $params )
 
 create new policy with name $policy_name and $policy shared, setting
-different parameters via %params
+different parameters via $params hash reference
 =cut
 sub policy_new {
-	my ( $self, $policy_name, $policy_shared, %params ) = @_;
+	my ( $self, $policy_name, $policy_shared, $params ) = @_;
 
-	$params{'policy_name'} = $policy_name;
-	$params{'policy_shared'} = $policy_shared;
-	my $xmls = $self->policy_edit(0, %params);
+	$params->{'policy_name'} = $policy_name;
+	$params->{'policy_shared'} = $policy_shared;
+	my $xmls = $self->policy_edit(0, %{$params});
 	return $xmls;
 }
 
@@ -771,16 +771,16 @@ sub policy_get_opts {
 	 return '';
 }
 
-=head2 policy_set_opts ( $policy_id , %params ) 
+=head2 policy_set_opts ( $policy_id , $params ) 
 
-sets policy options via hash identified by $policy_id 
+sets policy options via hashref $params identified by $policy_id 
 =cut
 sub policy_set_opts {
-	my ( $self, $policy_id, %params ) = @_;
+	my ( $self, $policy_id, $params ) = @_;
 
 	my $post={ "token" => $self->token };
 	%{$post} = $self->policy_get_opts ($policy_id);
-	while (my ($key, $value) = each(%params))
+	while (my ($key, $value) = each(%{$params}))
 	{
 		$post->{$key} = $value;
 	}
