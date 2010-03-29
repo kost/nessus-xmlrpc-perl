@@ -234,7 +234,6 @@ sub scan_new_file {
 		"scan_name" => $scan_name,
 		"target" => $target
 		 };
-	my 
 	$post->{"target_file_name"} = $self->file_upload($filename);
 	my $xmls = $self->nessus_request("scan/new",$post);
 	if ($xmls) {
