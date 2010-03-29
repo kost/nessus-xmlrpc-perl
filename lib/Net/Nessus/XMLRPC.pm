@@ -482,6 +482,36 @@ sub policy_get_first {
 	return '';
 }
 
+=head2 policy_get_firsth
+
+returns hash %value with basic info of first policy/scan 
+returned by the server
+
+$value{'id'}, $value{'name'}, $value{'owner'}, $value{'visibility'},
+$value{'comment'}
+=cut
+sub policy_get_firsth {
+	my ( $self ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		 ];
+
+	my %info;	
+	my $xmls = $self->nessus_request("policy/list",$post);
+	if ($xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}) {
+	foreach my $report (@{$xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}}) {
+		$info{'id'} = $report->{'policyID'}->[0];
+		$info{'name'} = $report->{'policyName'}->[0];
+		$info{'owner'} = $report->{'policyOwner'}->[0];
+		$info{'visibility'} = $report->{'visibility'}->[0];
+		$info{'comment'} = $report->{'policyContents'}->[0]->{'policyComments'}->[0];
+		return %info;
+	} # foreach
+	} # if
+	return %info;
+}
+
 =head2 policy_list_uids 
 
 returns array of IDs of policies available
