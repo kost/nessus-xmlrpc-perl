@@ -122,6 +122,8 @@ sub nessus_http_request {
 	my $furl = $self->nurl.$uri;
 	my $r = POST $furl, $post_data;
 	my $result = $ua->request($r);
+	# my $filename="n-".time; open (FILE,">$filename"); 
+	# print FILE $result->content; close (FILE);
 	if ($result->is_success) {
 		return $result->content;
 	} else {
@@ -402,9 +404,9 @@ sub nessus_http_upload_request {
 	my $furl = $self->nurl.$uri;
 	my $r = POST $furl, Content_Type => 'form-data', Content => $post_data;
 	my $result = $ua->request($r);
+	#my $filename="u-".time; open (FILE,">$filename"); 
+	#print FILE $result->content; close (FILE);
 	if ($result->is_success) {
-		#my $filename="u-".time; open (FILE,">$filename"); 
-		#print FILE $result->content; close (FILE);
 		return $result->content;
 	} else {
 		return '';
