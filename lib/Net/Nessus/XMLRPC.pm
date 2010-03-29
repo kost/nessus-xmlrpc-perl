@@ -599,6 +599,53 @@ sub policy_rename {
 	return $xmls;
 }
 
+=head2 policy_edit ( $policy_id, %params )
+
+edit policy identified by $policy_id
+%params (must be present): 
+policy_name => name
+policy_shared => 1
+%params can be (examples)
+max_hosts => 50,
+max_checks=> 10,
+use_mac_addr => no,
+throttle_scan => yes,
+optimize_test => yes,
+log_whole_attack => no,
+ssl_cipher_list => strong,
+save_knowledge_base => no,
+port_range => 1-65535
+=cut
+sub policy_edit {
+	my ( $self, $policy_id, %params ) = @_;
+
+	my $post={ 
+		"token" => $self->token, 
+		"policy_id" => $policy_id
+		 };
+	while (my ($key, $value) = each(%params))
+	{
+		$post->{$key} = $value;
+	}
+
+	my $xmls = $self->nessus_request("policy/add",$post);
+	return $xmls;
+}
+
+=head2 policy_new ( $policy_name, $policy_shared, %params )
+
+create new policy with name $policy_name and $policy shared, setting
+different parameters via %params
+=cut
+sub policy_new {
+	my ( $self, $policy_name, $policy_shared, %params ) = @_;
+
+	$params{'policy_name'} = $policy_name;
+	$params{'policy_shared'} = $policy_shared;
+	my $xmls = $self->policy_edit(0, %params);
+	return $xmls;
+}
+
 =head2 report_list_uids 
 
 returns array of IDs of reports available
