@@ -391,6 +391,54 @@ sub scan_finished {
 	}
 }	
 
+=head2 nessus_http_upload_request ( $uri, $post_data )
+
+low-level function, makes HTTP upload request to URI specified
+=cut
+sub nessus_http_upload_request {
+	my ( $self, $uri, $post_data ) = @_;
+	my $ua = $self->{_ua};
+	# my $ua = LWP::UserAgent->new;
+	my $furl = $self->nurl.$uri;
+	my $r = POST $furl, Content_Type => 'form-data', Content => $post_data;
+	my $result = $ua->request($r);
+	if ($result->is_success) {
+		#my $filename="u-".time; open (FILE,">$filename"); 
+		#print FILE $result->content; close (FILE);
+		return $result->content;
+	} else {
+		return '';
+	}
+}
+
+=head2 file_upload ( $filename )
+
+uploads $filename to nessus server, returns filename of file uploaded
+or '' if failed
+
+Note that uploaded file is per session (i.e. it will be there until logout/attack.) 
+So, don't logout or login again and use the filename! You need to upload it 
+again!
+=cut
+sub file_upload {
+	my ( $self, $filename ) = @_;
+	my $post=[ "token" => $self->token, Filedata => [ $filename] ];
+	my $cont=$self->nessus_http_upload_request("file/upload",$post);
+	if ($cont eq '') {
+		return ''	
+	}
+	my $xmls;
+	eval {
+	$xmls=XMLin($cont, ForceArray => 1, KeyAttr => '', SuppressEmpty => '');
+	} or return '';
+	# return ($xmls->{'contents'}->[0]->{'scan'}->[0]->{'uuid'}->[0]);
+	if ($xmls->{'status'}->[0] eq "OK") {
+		return $xmls->{'contents'}->[0]->{'fileUploaded'}->[0]; 
+	} else { 
+		return ''
+	}
+}
+
 =head2 policy_get_first
 
 returns policy id for the first policy found
