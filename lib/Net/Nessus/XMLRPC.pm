@@ -646,6 +646,70 @@ sub policy_new {
 	return $xmls;
 }
 
+=head2 policy_get_opts ( $policy_id ) 
+
+returns hash with different options for policy identified by $policy_id 
+=cut
+sub policy_get_opts {
+	my ( $self, $policy_id ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		 ];
+	my $xmls = $self->nessus_request("policy/list",$post);
+
+	if ($xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}) {
+		my %opts;
+		foreach my $report (@{$xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}}) {
+		if ($report->{'policyID'}->[0] eq $policy_id) {
+			$opts{'policy_name'}=$report->{'policyName'}->[0];
+			if ($report->{'visibility'}->[0] eq "shared") {
+				$opts{'policy_shared'}=1;
+			} else {
+				$opts{'policy_shared'}=0;
+			}
+			if ($report->{'policyContents'}->[0]->{'policyComments'}->[0]) {
+				$opts{'policy_comments'}=$report->{'policyContents'}->[0]->{'policyComments'}->[0];
+			}
+			foreach my $prefs (@{$report->{'policyContents'}->[0]->{'Preferences'}->[0]->{'ServerPreferences'}->[0]->{'preference'}}) {
+				$opts{$prefs->{'name'}->[0]} = $prefs->{'value'}->[0] if ($prefs->{'name'}->[0]);
+			}
+			foreach my $prefp (@{$report->{'policyContents'}->[0]->{'Preferences'}->[0]->{'PluginsPreferences'}->[0]->{'item'}}) {
+				$opts{$prefp->{'fullName'}->[0]} = $prefp->{'selectedValue'}->[0] if ($prefp->{'fullName'}->[0]);
+			}
+			foreach my $plugf (@{$report->{'policyContents'}->[0]->{'FamilySelection'}->[0]->{'FamilyItem'}}) {
+				$opts{"plugin_selection.family.".$plugf->{'FamilyName'}->[0]} = $plugf->{'Status'}->[0] if ($plugf->{'FamilyName'}->[0]);
+			}
+			foreach my $plugi (@{$report->{'policyContents'}->[0]->{'IndividualPluginSelection'}->[0]->{'PluginItem'}}) {
+				$opts{"plugin_selection.individual_plugin.".$plugi->{'PluginId'}->[0]} = $plugi->{'Status'}->[0] if ($plugi->{'PluginId'}->[0]);
+			}
+			return %opts;
+		}
+	 } # foreach
+	 } # if
+	 return '';
+}
+
+=head2 policy_get_opts ( $policy_id , %params ) 
+
+sets policy options via hash identified by $policy_id 
+=cut
+sub policy_set_opts {
+	my ( $self, $policy_id, %params ) = @_;
+
+	my $post={ "token" => $self->token };
+	%{$post} = $self->policy_get_opts ($policy_id);
+	while (my ($key, $value) = each(%params))
+	{
+		$post->{$key} = $value;
+	}
+	$post->{"token"} = $self->token;
+	$post->{"policy_id"} = $policy_id;
+
+	my $xmls = $self->nessus_request("policy/edit",$post);
+	return $xmls;
+}
+
 =head2 report_list_uids 
 
 returns array of IDs of reports available
