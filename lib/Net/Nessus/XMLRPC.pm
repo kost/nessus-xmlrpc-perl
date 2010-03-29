@@ -433,7 +433,6 @@ sub file_upload {
 	eval {
 	$xmls=XMLin($cont, ForceArray => 1, KeyAttr => '', SuppressEmpty => '');
 	} or return '';
-	# return ($xmls->{'contents'}->[0]->{'scan'}->[0]->{'uuid'}->[0]);
 	if ($xmls->{'status'}->[0] eq "OK") {
 		return $xmls->{'contents'}->[0]->{'fileUploaded'}->[0]; 
 	} else { 
@@ -781,6 +780,28 @@ sub report_delete {
 	my $xmls = $self->nessus_request("report/delete", $post);
 	return $xmls;
 }	
+
+=head2 report_import ( $filename )
+
+uploads $filename to nessus server and imports it as nessus report
+=cut
+sub report_import {
+	my ( $self, $filename ) = @_;
+	my $post=[ "token" => $self->token, File => [ $filename] ];
+	my $cont=$self->nessus_http_upload_request("file/report/import",$post);
+	if ($cont eq '') {
+		return ''	
+	}
+	my $xmls;
+	eval {
+	$xmls=XMLin($cont, ForceArray => 1, KeyAttr => '', SuppressEmpty => '');
+	} or return '';
+	if ($xmls->{'status'}->[0] eq "OK") {
+		return $xmls->{'contents'}->[0]->{'fileUploaded'}->[0]; 
+	} else { 
+		return ''
+	}
+}
 
 =head1 AUTHOR
 
