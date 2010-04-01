@@ -683,9 +683,11 @@ sub policy_rename {
 =head2 policy_edit ( $policy_id, $params )
 
 edit policy identified by $policy_id
+
 %params (must be present): 
 policy_name => name
 policy_shared => 1
+
 %params can be (examples)
 max_hosts => 50,
 max_checks=> 10,
@@ -713,16 +715,18 @@ sub policy_edit {
 	return $xmls;
 }
 
-=head2 policy_new ( $policy_name, $policy_shared, $params )
+=head2 policy_new ( $params )
 
-create new policy with name $policy_name and $policy shared, setting
-different parameters via $params hash reference
+create new policy with $params, 
+%params must be present:
+policy_name
+policy_shared
+
+the others parameters are same as policy_edit
 =cut
 sub policy_new {
-	my ( $self, $policy_name, $policy_shared, $params ) = @_;
+	my ( $self, $params ) = @_;
 
-	$params->{'policy_name'} = $policy_name;
-	$params->{'policy_shared'} = $policy_shared;
 	my $xmls = $self->policy_edit(0, %{$params});
 	return $xmls;
 }
