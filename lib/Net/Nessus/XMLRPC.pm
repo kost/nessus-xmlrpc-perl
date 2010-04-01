@@ -123,7 +123,7 @@ sub nessus_http_request {
 	my $r = POST $furl, $post_data;
 	my $result = $ua->request($r);
 	# my $filename="n-".time; open (FILE,">$filename"); 
-	# print FILE $result->content; close (FILE);
+	# print FILE $result->as_string; close (FILE);
 	if ($result->is_success) {
 		return $result->content;
 	} else {
@@ -426,8 +426,8 @@ sub nessus_http_upload_request {
 	my $furl = $self->nurl.$uri;
 	my $r = POST $furl, Content_Type => 'form-data', Content => $post_data;
 	my $result = $ua->request($r);
-	#my $filename="u-".time; open (FILE,">$filename"); 
-	#print FILE $result->content; close (FILE);
+	# my $filename="u-".time; open (FILE,">$filename"); 
+	# print FILE $result->as_string; close (FILE);
 	if ($result->is_success) {
 		return $result->content;
 	} else {
@@ -869,24 +869,26 @@ sub report_delete {
 
 =head2 report_import ( $filename )
 
-uploads $filename to nessus server and imports it as nessus report
+tells nessus server to import already uploaded file named $filename
+( i.e. you already uploaded the file via file_upload() )
 =cut
 sub report_import {
 	my ( $self, $filename ) = @_;
-	my $post=[ "token" => $self->token, File => [ $filename] ];
-	my $cont=$self->nessus_http_upload_request("file/report/import",$post);
-	if ($cont eq '') {
-		return ''	
-	}
-	my $xmls;
-	eval {
-	$xmls=XMLin($cont, ForceArray => 1, KeyAttr => '', SuppressEmpty => '');
-	} or return '';
-	if ($xmls->{'status'}->[0] eq "OK") {
-		return $xmls->{'contents'}->[0]->{'fileUploaded'}->[0]; 
-	} else { 
-		return ''
-	}
+	my $post={ "token" => $self->token, "file" => $filename };
+	my $xmls = $self->nessus_request("file/report/import",$post);
+	return $xmls;
+}
+
+=head2 report_import_file ( $filename )
+
+uploads $filename to nessus server and imports it as nessus report
+=cut
+sub report_import_file {
+	my ( $self, $filename ) = @_;
+	my $post={ "token" => $self->token};
+	$post->{"file"} = $self->file_upload($filename);
+	my $xmls = $self->nessus_request("file/report/import",$post);
+	return $xmls;
 }
 
 =head1 AUTHOR
