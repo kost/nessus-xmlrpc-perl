@@ -13,11 +13,11 @@ Net::Nessus::XMLRPC - Communicate with Nessus scanner(v4.2+) via XMLRPC
 
 =head1 VERSION
 
-Version 0.04
+Version 0.10
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.10';
 
 
 =head1 SYNOPSIS

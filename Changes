@@ -1,6 +1,6 @@
 Revision history for Net-Nessus-XMLRPC
 
-0.05dev	2010-04-01 18:38
+0.10	2010-04-01 18:38
 	Added notice for SSL requirements for LWP
 	Added functions/methods for policy handling
 	Added support for importing the report
