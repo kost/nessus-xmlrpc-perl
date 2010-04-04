@@ -891,6 +891,96 @@ sub report_import_file {
 	return $xmls;
 }
 
+=head2 users_list 
+
+returns array of hash %values with users info 
+$values{'name'}
+$values{'admin'}
+$values{'lastlogin'}
+=cut
+sub users_list {
+	my ( $self ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		 ];
+	my @users;
+	my $xmls = $self->nessus_request("users/list",$post);
+	if ($xmls->{'contents'}->[0]->{'users'}->[0]->{'user'}) {
+	foreach my $user (@{$xmls->{'contents'}->[0]->{'users'}->[0]->{'user'}}) {
+		my %info;
+		$info{'name'} = $user->{'name'}->[0];
+		$info{'admin'} = $user->{'admin'}->[0];
+		$info{'lastlogin'} = $user->{'lastlogin'}->[0];
+		push @users, %info
+
+	} # foreach
+	} # if
+	return @users;
+}
+
+=head2 users_delete ( $login ) 
+
+deletes user with $login
+
+=cut
+sub users_delete {
+	my ( $self, $login ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		"login" => $login
+		 ];
+	my $xmls = $self->nessus_request("users/delete",$post);
+	my $user = '';
+	if ($xmls->{'contents'}->[0]->{'user'}->[0]->{'name'}->[0]) {
+		$user = $xmls->{'contents'}->[0]->{'user'}->[0]->{'name'}->[0];
+	}
+	return $user;
+}
+
+=head2 users_add ( $login, $password )
+
+deletes user with $login and $password, return username created, '' if not
+
+=cut
+sub users_add {
+	my ( $self, $login, $password ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		"login" => $login,
+		"password" => $password
+		 ];
+	my $xmls = $self->nessus_request("users/add",$post);
+	my $user = '';
+	if ($xmls->{'contents'}->[0]->{'user'}->[0]->{'name'}->[0]) {
+		$user = $xmls->{'contents'}->[0]->{'user'}->[0]->{'name'}->[0];
+	}
+	return $user;
+}
+
+=head2 users_passwd ( $login, $password )
+
+change user password to $password identified with $login, return username, '' if not
+
+=cut
+sub users_passwd {
+	my ( $self, $login, $password ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		"login" => $login,
+		"password" => $password
+		 ];
+	my $xmls = $self->nessus_request("users/chpasswd",$post);
+	my $user = '';
+	if ($xmls->{'contents'}->[0]->{'user'}->[0]->{'name'}->[0]) {
+		$user = $xmls->{'contents'}->[0]->{'user'}->[0]->{'name'}->[0];
+	}
+	return $user;
+}
+
 =head1 AUTHOR
 
 Vlatko Kosturjak, C<< <kost at linux.hr> >>
