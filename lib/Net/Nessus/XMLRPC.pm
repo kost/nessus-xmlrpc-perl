@@ -91,6 +91,15 @@ sub new {
 	return $self;
 }
 
+=head2 DESTROY 
+
+destructor, calls logout method on destruction
+=cut
+sub DESTROY {
+	my ($self) = @_;
+	$self->logout();
+}
+
 =head2 nurl ( [$nessus_url] )
 
 get/set Nessus base URL
@@ -179,15 +188,6 @@ sub logout {
 	my $post=[ "token" => $self->token ];
 	my $xmls = $self->nessus_request("logout",$post);
 	$self->token('');
-}
-
-=head2 DESTROY 
-
-destructor, calls logout method on destruction
-=cut
-sub DESTROY {
-	my ($self) = @_;
-	$self->logout();
 }
 
 =head2 logged_in
