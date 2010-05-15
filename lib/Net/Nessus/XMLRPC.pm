@@ -266,12 +266,12 @@ stops all scans
 sub scan_stop_all {
 	my ( $self ) = @_;
 
-	my @list = $self->scan_list_uids;
+	my $list = $self->scan_list_uids;
 
-	foreach my $uuid (@list) {
+	foreach my $uuid (@$list) {
 		$self->scan_stop($uuid);
 	}
-	return @list;
+	return $list;
 }
 
 =head2 scan_pause ( $scan_id )
@@ -297,12 +297,12 @@ pauses all scans
 sub scan_pause_all {
 	my ( $self ) = @_;
 
-	my @list = $self->scan_list_uids;
+	my $list = $self->scan_list_uids;
 
-	foreach my $uuid (@list) {
+	foreach my $uuid (@$list) {
 		$self->scan_pause($uuid);
 	}
-	return @list;
+	return $list;
 }
 
 =head2 scan_resume ( $scan_id )
@@ -328,12 +328,12 @@ resumes all scans
 sub scan_resume_all {
 	my ( $self ) = @_;
 
-	my @list = $self->scan_list_uids;
+	my $list = $self->scan_list_uids;
 
-	foreach my $uuid (@list) {
+	foreach my $uuid (@$list) {
 		$self->scan_resume($uuid);
 	}
-	return @list;
+	return $list;
 }
 
 =head2 scan_list_uids 
@@ -353,7 +353,7 @@ sub scan_list_uids {
 	foreach my $scan (@{$xmls->{'contents'}->[0]->{'scans'}->[0]->{'scanList'}->[0]->{'scan'}}) {
 		push @list, $scan->{'uuid'}->[0];
 	} # foreach
-	return @list;
+	return \@list;
 	} # if
 }
 
@@ -462,6 +462,34 @@ sub file_upload {
 	}
 }
 
+=head2 upload ( $filename, $content )
+
+uploads $filename to nessus server using $content as content of file, returns filename of file uploaded
+or '' if failed
+
+Note that uploaded file is per session (i.e. it will be there until logout/attack.) 
+So, don't logout or login again and use the filename! You need to upload it 
+again!
+=cut
+sub upload {
+	my ( $self, $filename, $content ) = @_;
+	# Content => [ $PARAM => [undef,$FILENAME, Content => $CONTENTS ] ]);
+	my $post=[ "token" => $self->token, Filedata => [ undef, $filename, Content => $content] ];
+	my $cont=$self->nessus_http_upload_request("file/upload",$post);
+	if ($cont eq '') {
+		return ''	
+	}
+	my $xmls;
+	eval {
+	$xmls=XMLin($cont, ForceArray => 1, KeyAttr => '', SuppressEmpty => '');
+	} or return '';
+	if ($xmls->{'status'}->[0] eq "OK") {
+		return $xmls->{'contents'}->[0]->{'fileUploaded'}->[0]; 
+	} else { 
+		return ''
+	}
+}
+
 =head2 policy_get_first
 
 returns policy id for the first policy found
@@ -484,7 +512,7 @@ sub policy_get_first {
 
 =head2 policy_get_firsth
 
-returns hash %value with basic info of first policy/scan 
+returns ref to hash %value with basic info of first policy/scan 
 returned by the server
 
 $value{'id'}, $value{'name'}, $value{'owner'}, $value{'visibility'},
@@ -506,15 +534,46 @@ sub policy_get_firsth {
 		$info{'owner'} = $report->{'policyOwner'}->[0];
 		$info{'visibility'} = $report->{'visibility'}->[0];
 		$info{'comment'} = $report->{'policyContents'}->[0]->{'policyComments'}->[0];
-		return %info;
+		return \%info;
 	} # foreach
 	} # if
-	return %info;
+	return \%info;
+}
+
+=head2 policy_list_hash
+
+returns ref to array of hashes %value with basic info of first policy/scan 
+returned by the server
+
+$value{'id'}, $value{'name'}, $value{'owner'}, $value{'visibility'},
+$value{'comment'}
+=cut
+sub policy_list_hash {
+	my ( $self ) = @_;
+
+	my $post=[ 
+		"token" => $self->token, 
+		 ];
+
+	my @list;
+	my $xmls = $self->nessus_request("policy/list",$post);
+	if ($xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}) {
+	foreach my $report (@{$xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}}) {
+		my %info;	
+		$info{'id'} = $report->{'policyID'}->[0];
+		$info{'name'} = $report->{'policyName'}->[0];
+		$info{'owner'} = $report->{'policyOwner'}->[0];
+		$info{'visibility'} = $report->{'visibility'}->[0];
+		$info{'comment'} = $report->{'policyContents'}->[0]->{'policyComments'}->[0];
+		push @list, \%info;
+	} # foreach
+	} # if
+	return \@list;
 }
 
 =head2 policy_list_uids 
 
-returns array of IDs of policies available
+returns ref to array of IDs of policies available
 =cut
 sub policy_list_uids {
 	my ( $self ) = @_;
@@ -529,14 +588,14 @@ sub policy_list_uids {
 	foreach my $report (@{$xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}}) {
 		push @list,$report->{'policyID'}->[0];
 	} # foreach
-	return @list;
+	return \@list;
 	} # if
 	return '';
 }
 
 =head2 policy_list_names 
 
-returns array of names of policies available
+returns ref to array of names of policies available
 =cut
 sub policy_list_names {
 	my ( $self ) = @_;
@@ -551,14 +610,14 @@ sub policy_list_names {
 	foreach my $report (@{$xmls->{'contents'}->[0]->{'policies'}->[0]->{'policy'}}) {
 		push @list,$report->{'policyName'}->[0];
 	} # foreach
-	return @list;
+	return \@list;
 	} # if
 	return '';
 }
 
 =head2 policy_get_info ( $policy_id ) 
 
-returns hash %value with basic info of policy/scan identified by $policy_id 
+returns ref to hash %value with basic info of policy/scan identified by $policy_id 
 
 $value{'id'}, $value{'name'}, $value{'owner'}, $value{'visibility'},
 $value{'comment'}
@@ -579,11 +638,11 @@ sub policy_get_info {
 		$info{'owner'} = $report->{'policyOwner'}->[0];
 		$info{'visibility'} = $report->{'visibility'}->[0];
 		$info{'comment'} = $report->{'policyContents'}->[0]->{'policyComments'}->[0];
-		return %info;
+		return \%info;
 	}
 	} # foreach
 	} # if
-	return %info;
+	return \%info;
 }
 
 =head2 policy_get_id ( $policy_name ) 
@@ -733,7 +792,7 @@ sub policy_new {
 
 =head2 policy_get_opts ( $policy_id ) 
 
-returns hash with different options for policy identified by $policy_id 
+returns hashref with different options for policy identified by $policy_id 
 =cut
 sub policy_get_opts {
 	my ( $self, $policy_id ) = @_;
@@ -768,7 +827,7 @@ sub policy_get_opts {
 			foreach my $plugi (@{$report->{'policyContents'}->[0]->{'IndividualPluginSelection'}->[0]->{'PluginItem'}}) {
 				$opts{"plugin_selection.individual_plugin.".$plugi->{'PluginId'}->[0]} = $plugi->{'Status'}->[0] if ($plugi->{'PluginId'}->[0]);
 			}
-			return %opts;
+			return \%opts;
 		}
 	 } # foreach
 	 } # if
@@ -782,8 +841,7 @@ sets policy options via hashref $params identified by $policy_id
 sub policy_set_opts {
 	my ( $self, $policy_id, $params ) = @_;
 
-	my $post={ "token" => $self->token };
-	%{$post} = $self->policy_get_opts ($policy_id);
+	my $post = $self->policy_get_opts ($policy_id);
 	while (my ($key, $value) = each(%{$params}))
 	{
 		$post->{$key} = $value;
@@ -797,14 +855,13 @@ sub policy_set_opts {
 
 =head2 report_list_uids 
 
-returns array of IDs of reports available
+returns ref to array of IDs of reports available
 =cut
 sub report_list_uids {
-	my ( $self, $uuid ) = @_;
+	my ( $self ) = @_;
 
 	my $post=[ 
-		"token" => $self->token, 
-		"report" => $uuid,
+		"token" => $self->token 
 		 ];
 
 	my $xmls = $self->nessus_request("report/list",$post);
@@ -815,7 +872,40 @@ sub report_list_uids {
 	}
 	}
 
-	return @list;
+	return \@list;
+}
+
+=head2 report_list_hash 
+
+returns ref to array of hashes with basic info of reports 
+hash has following keys:
+name
+status
+readableName
+timestamp
+=cut
+sub report_list_hash {
+	my ( $self ) = @_;
+
+	my $post=[ 
+		"token" => $self->token 
+		 ];
+
+	my $xmls = $self->nessus_request("report/list",$post);
+	my @list;
+	if ($xmls->{'contents'}->[0]->{'reports'}->[0]->{'report'}) {
+	foreach my $report (@{$xmls->{'contents'}->[0]->{'reports'}->[0]->{'report'}}) {	
+		my %r;
+		$r{'name'} = $report->{'name'}->[0];
+		$r{'status'} = $report->{'status'}->[0];
+		$r{'readableName'} = $report->{'readableName'}->[0];
+		$r{'timestamp'} = $report->{'timestamp'}->[0];
+		
+		push @list, \%r;
+	}
+	}
+
+	return \@list;
 }
 
 =head2 report_file_download ($report_id)
@@ -893,7 +983,7 @@ sub report_import_file {
 
 =head2 users_list 
 
-returns array of hash %values with users info 
+returns ref to array of hash %values with users info 
 $values{'name'}
 $values{'admin'}
 $values{'lastlogin'}
@@ -912,11 +1002,11 @@ sub users_list {
 		$info{'name'} = $user->{'name'}->[0];
 		$info{'admin'} = $user->{'admin'}->[0];
 		$info{'lastlogin'} = $user->{'lastlogin'}->[0];
-		push @users, %info
+		push @users, \%info
 
 	} # foreach
 	} # if
-	return @users;
+	return \@users;
 }
 
 =head2 users_delete ( $login ) 

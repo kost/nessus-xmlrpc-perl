@@ -13,7 +13,9 @@ my $polid=$n->policy_get_first;
 print "Using policy ID: $polid ";
 my $polname=$n->policy_get_name($polid);
 print "with name: $polname\n";
-my $scanid=$n->scan_new($polid,"perl-test","127.0.0.1");
+my $scanname="perl-test";
+my $targets="127.0.0.1";
+my $scanid=$n->scan_new($polid,$scanname,$targets);
 
 $SIG{INT} = \&ctrlc;
 while (not $n->scan_finished($scanid)) {
