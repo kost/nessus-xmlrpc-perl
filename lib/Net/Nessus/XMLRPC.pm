@@ -153,7 +153,7 @@ sub nessus_request {
 	my $xmls;
 	eval {
 	$xmls=XMLin($cont, ForceArray => 1, KeyAttr => '', SuppressEmpty => '' );
-	} or return '';
+	} or carp( &@ );
 	if ($xmls->{'status'}->[0] eq "OK") {
 		return $xmls; 
 	} else { 
