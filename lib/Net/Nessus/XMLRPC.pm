@@ -975,6 +975,57 @@ sub report_file1_download {
 	return $file;
 }	
 
+=head2 formated_report_download ($report_id)
+
+returns the report identified by $report_id, with given format and chapters
+(Nessus v5 required)
+=cut
+sub formated_report_download {
+    my ($self, $id, $chapters, $format) = @_;
+
+    my $html = $self->nessus_http_request("chapter", [
+        token    => $self->token(),
+        report   => $id,
+        format   => $format,
+        chapters => $chapters
+    ]);
+
+    my ($delay, $path);
+    my $callback = sub {
+        my ($tag, $attributes) = @_;
+        return unless $tag eq 'meta';
+        return unless $attributes->{'http-equiv'};
+
+        my $content = $attributes->{content};
+        ($delay, $path) = $content =~ /^(\d+);url=(\S+)/;
+    };
+    my $parser = HTML::Parser->new(
+        api_version => 3,
+        start_h     => [ $callback, "tagname, attr"],
+    );
+    $parser->parse($html);
+
+    sleep($delay);
+
+    my $cookie = 'token=' . $self->token();
+    my $server = substr($self->nurl(), 0, -1); # drop trailing /
+    my $url    = $server . $path;
+
+    my $request = HTTP::Request->new('GET', $url, [ Cookie => $cookie ]);
+    my $response = $self->{_ua}->request($request);
+    my $type = $response->header('content-type');
+
+    while ($format ne 'html' && $type eq 'text/html') {
+        $parser->parse($response->content());
+        sleep($delay);
+        $request = HTTP::Request->new('GET', $url, [ Cookie => $cookie ]);
+        $response = $self->{_ua}->request($request);
+        $type = $response->header('content-type');
+    }
+
+    return $response->content();
+}
+
 =head2 report_delete ($report_id)
 
 delete report identified by $report_id
