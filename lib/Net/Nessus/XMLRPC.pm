@@ -3,6 +3,7 @@ package Net::Nessus::XMLRPC;
 use XML::Simple;
 use LWP::UserAgent;
 use HTTP::Request::Common;
+use List::Util qw/first/;
 
 use warnings;
 use strict;
@@ -385,20 +386,53 @@ returns status of the scan identified by $uuid
 sub scan_status {
 	my ( $self, $uuid ) = @_;
 
+	my $status = $self->full_status($uuid);
+
+	return $status ? $status->{status} : '';
+}
+
+=head2 scan_full_status ( $uuid )
+
+returns complete status of the scan identified by $uuid, as an hashref with three keys:
+
+=over
+
+=item current
+
+the number of addresses scanned sofar
+
+=item total
+
+the total number of addresses to scan
+
+=item status
+
+the string status value
+
+=back
+
+=cut
+sub scan_full_status {
+	my ( $self, $uuid ) = @_;
+
 	my $post=[ 
 		"token" => $self->token, 
-		"report" => $uuid,
 		 ];
 
-	my $xmls = $self->nessus_request("report/list",$post);
-	if ($xmls->{'contents'}->[0]->{'reports'}->[0]->{'report'}) {
-	foreach my $report (@{$xmls->{'contents'}->[0]->{'reports'}->[0]->{'report'}}) {
-		if ($report->{'name'}->[0] eq $uuid) {
-			return $report->{'status'}->[0];
-		}
-	} # foreach
-	} # if
-	return ''; # nothing found
+	my $xmls = $self->nessus_request("scan/list",$post);
+
+	my $scans = $xmls->{contents}->[0]->{scans}->[0]->{scanList}->[0];
+	return unless ref $scans eq 'HASH';
+
+	my $scan = first { $_->{uuid}->[0] eq $uuid } @{$scans->{scan}};
+	return unless $scan;
+
+	return {
+		current => $scan->{completion_current}->[0],
+		total   => $scan->{completion_total}->[0],
+		status  => $scan->{status}->[0],
+	};
+
 }
 
 =head2 scan_finished ( $uuid ) 
