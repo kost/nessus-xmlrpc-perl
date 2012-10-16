@@ -3,6 +3,7 @@ package Net::Nessus::XMLRPC;
 use XML::Simple;
 use LWP::UserAgent;
 use HTTP::Request::Common;
+use HTML::Parser;
 use List::Util qw/first/;
 
 use warnings;
