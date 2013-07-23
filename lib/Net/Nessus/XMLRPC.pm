@@ -981,62 +981,62 @@ returns the report identified by $report_id, with given format and chapters
 (Nessus v5 required)
 =cut
 sub formated_report_download {
-    my ($self, $id, $chapters, $format) = @_;
+	my ($self, $id, $chapters, $format) = @_;
 
-    eval {
-        require HTML::Parser;
-    };
-    if ($@) {
-        warn 'Unable to load HTML::Parser, aborting';
-        return;
-    }
+	eval {
+		require HTML::Parser;
+	};
+	if ($@) {
+		warn 'Unable to load HTML::Parser, aborting';
+		return;
+	}
 
-    my $html = $self->nessus_http_request("chapter", [
-        token    => $self->token(),
-        report   => $id,
-        format   => $format,
-        chapters => $chapters
-    ]);
+	my $html = $self->nessus_http_request("chapter", [
+		token    => $self->token(),
+		report   => $id,
+		format   => $format,
+		chapters => $chapters
+	]);
 
-    my ($delay, $path);
-    my $callback = sub {
-        my ($tag, $attributes) = @_;
-        return unless $tag eq 'meta';
-        return unless $attributes->{'http-equiv'};
+	my ($delay, $path);
+	my $callback = sub {
+		my ($tag, $attributes) = @_;
+		return unless $tag eq 'meta';
+		return unless $attributes->{'http-equiv'};
 
-        my $content = $attributes->{content};
-        ($delay, $path) = $content =~ /^(\d+);url=(\S+)/;
-    };
-    my $parser = HTML::Parser->new(
-        api_version => 3,
-        start_h     => [ $callback, "tagname, attr"],
-    );
-    $parser->parse($html);
+		my $content = $attributes->{content};
+		($delay, $path) = $content =~ /^(\d+);url=(\S+)/;
+	};
+	my $parser = HTML::Parser->new(
+	    api_version => 3,
+	    start_h     => [ $callback, "tagname, attr"],
+	);
+	$parser->parse($html);
 
-    sleep($delay);
+	sleep($delay);
 
-    my $cookie = 'token=' . $self->token();
-    my $server = substr($self->nurl(), 0, -1); # drop trailing /
-    my $url    = $server . $path;
+	my $cookie = 'token=' . $self->token();
+	my $server = substr($self->nurl(), 0, -1); # drop trailing /
+	my $url    = $server . $path;
 
-    my $request = HTTP::Request->new('GET', $url, [ Cookie => $cookie ]);
-    my $response = $self->{_ua}->request($request);
-    return unless $response->is_success();
+	my $request = HTTP::Request->new('GET', $url, [ Cookie => $cookie ]);
+	my $response = $self->{_ua}->request($request);
+	return unless $response->is_success();
 
-    my $length = $response->header('content-length');
+	my $length = $response->header('content-length');
 
-    # 1800 seems a good treshold to distinguish between temporary server
-    # response and final report
-    while ($length <= 1800) {
-        $parser->parse($response->content());
-        return unless defined $delay,
-        sleep($delay);
-        $request = HTTP::Request->new('GET', $url, [ Cookie => $cookie ]);
-        $response = $nessus->{_ua}->request($request);
-        $length = $response->header('content-length');
-    }
+	# 1800 seems a good treshold to distinguish between temporary server
+	# response and final report
+	while ($length <= 1800) {
+		$parser->parse($response->content());
+		return unless defined $delay,
+		sleep($delay);
+		$request = HTTP::Request->new('GET', $url, [ Cookie => $cookie ]);
+		$response = $nessus->{_ua}->request($request);
+		$length = $response->header('content-length');
+	}
 
-    return $response->content();
+	return $response->content();
 }
 
 =head2 report_delete ($report_id)
