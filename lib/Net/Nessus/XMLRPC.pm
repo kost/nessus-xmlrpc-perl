@@ -1021,6 +1021,8 @@ sub formated_report_download {
 
     my $request = HTTP::Request->new('GET', $url, [ Cookie => $cookie ]);
     my $response = $self->{_ua}->request($request);
+    return unless $response->is_success();
+
     my $type = $response->header('content-type');
 
     while ($format ne 'html' && $type eq 'text/html') {
