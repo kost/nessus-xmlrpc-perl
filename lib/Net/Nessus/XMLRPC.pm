@@ -1023,14 +1023,17 @@ sub formated_report_download {
     my $response = $self->{_ua}->request($request);
     return unless $response->is_success();
 
-    my $type = $response->header('content-type');
+    my $length = $response->header('content-length');
 
-    while ($format ne 'html' && $type eq 'text/html') {
+    # 1800 seems a good treshold to distinguish between temporary server
+    # response and final report
+    while ($length <= 1800) {
         $parser->parse($response->content());
+        return unless defined $delay,
         sleep($delay);
         $request = HTTP::Request->new('GET', $url, [ Cookie => $cookie ]);
-        $response = $self->{_ua}->request($request);
-        $type = $response->header('content-type');
+        $response = $nessus->{_ua}->request($request);
+        $length = $response->header('content-length');
     }
 
     return $response->content();
