@@ -3,7 +3,6 @@ package Net::Nessus::XMLRPC;
 use XML::Simple;
 use LWP::UserAgent;
 use HTTP::Request::Common;
-use HTML::Parser;
 use List::Util qw/first/;
 
 use warnings;
@@ -983,6 +982,14 @@ returns the report identified by $report_id, with given format and chapters
 =cut
 sub formated_report_download {
     my ($self, $id, $chapters, $format) = @_;
+
+    eval {
+        require HTML::Parser;
+    };
+    if ($@) {
+        warn 'Unable to load HTML::Parser, aborting';
+        return;
+    }
 
     my $html = $self->nessus_http_request("chapter", [
         token    => $self->token(),
